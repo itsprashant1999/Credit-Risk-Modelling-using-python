@@ -10,7 +10,8 @@ SQL (DuckDB) and Python/pandas**, with identical, cross-checked results.
 > **Status: 🚧 In active development.** The data foundation (data understanding, leakage control,
 > target definition) is **complete and verified**; modeling, calibration, explainability, reject
 > inference, and serving are in progress. See **[PROJECT_PLAN.md](PROJECT_PLAN.md)** for the
-> phase-by-phase tracker.
+> phase-by-phase tracker and **[PROJECT_JOURNAL.md](PROJECT_JOURNAL.md)** for the decisions,
+> trade-offs & challenges log.
 
 ---
 
