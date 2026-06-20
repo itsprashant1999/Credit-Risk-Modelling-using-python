@@ -9,35 +9,39 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ## Phase 0 — Environment & Repo Setup
 - [x] 0.1 Create virtual environment (`.venv`)
-- [~] 0.2 Activate venv
+- [x] 0.2 Activate venv
 - [x] 0.3 Folder structure (`data/ notebooks/ src/ models/ reports/`)
 - [x] 0.4 `requirements.txt`
 - [x] 0.5 `.gitignore`
-- [ ] 0.6 `pip install -r requirements.txt`
-- [ ] 0.7 git identity + first commit + push to GitHub
+- [x] 0.6 `pip install -r requirements.txt` (into .venv)
+- [x] 0.7 git identity + first commit + push to GitHub
 
 ## Phase 1 — Data Acquisition & Verification  _(backs "2.2M loans" + "27M rejected")_
-- [ ] 1.1 Kaggle token / download
-- [ ] 1.2 Download `wordsforthewise/lending-club` into `data/`
-- [ ] 1.3 Confirm files present (accepted + rejected, likely `.csv.gz`)
-- [ ] 1.4 Count rows of both files — verify ~2.26M / ~27M
-- [ ] 1.5 Inspect accepted file: shape, columns, dtypes, memory
-- [ ] 1.6 Inspect rejected file: note its ~9 columns
+- [x] 1.1 Kaggle token / download
+- [x] 1.2 Download `wordsforthewise/lending-club` into `data/`
+- [x] 1.3 Confirm files present (accepted + rejected `.csv.gz`)
+- [x] 1.4 Count rows — VERIFIED: accepted 2,260,701 (151 cols) · rejected 27,648,741 (9 cols)
+- [x] 1.5 Inspect accepted: shape, columns, dtypes, memory ✓
+- [x] 1.6 Inspect rejected file: confirmed exactly 9 columns
 
 ## Phase 2 — Data Understanding & Leakage Decision  _(interview Q1)_
-- [ ] 2.1 Read the Lending Club data dictionary
-- [ ] 2.2 Identify target source (`loan_status`)
-- [ ] 2.3 Categorize columns: application-time vs post-origination
-- [ ] 2.4 Write `reports/leakage_exclusion_list.md` (column + reason)
-- [ ] 2.5 Decide on `grade` / `sub_grade` / `int_rate` (document it)
-- [ ] 2.6 Produce the allowed feature list
+- [x] 2.1 Reviewed columns against Lending Club data dictionary
+- [x] 2.2 Identify target source (`loan_status`)
+- [x] 2.3 Categorize columns: application-time vs post-origination
+- [x] 2.4 Write `reports/leakage_exclusion_list.md` (column + reason)
+- [x] 2.5 Decide on `grade` / `sub_grade` / `int_rate` (excluded — documented)
+- [x] 2.6 Produce the allowed feature list (98 features → `reports/allowed_features.txt`)
 
 ## Phase 3 — Target Definition & Cohort Selection
-- [ ] 3.1 Define bad (`Charged Off`/`Default`) vs good (`Fully Paid`)
-- [ ] 3.2 Exclude `Current` / in-progress loans
-- [ ] 3.3 Keep only matured/seasoned vintages
-- [ ] 3.4 Build binary target; check class balance
-- [ ] 3.5 Document final cohort N
+- [x] 3.1 Define bad (`Charged Off`/`Default`) vs good (`Fully Paid`)
+- [x] 3.2 Exclude `Current` / in-progress loans
+- [x] 3.3 Matured-only handled via resolved-status filter
+- [x] 3.4 Build binary target; class balance = 19.97% default
+- [x] 3.5 Final cohort N = 1,345,350 (SQL `model_data` view)
+
+> Dual track: every step exists in **pandas** (`notebooks/01_data_understanding.ipynb`)
+> and **SQL/DuckDB** (`notebooks/01_data_understanding_sql.ipynb`, `sql/01_data_understanding.sql`,
+> `data/credit.duckdb`). Numbers verified identical.
 
 ## Phase 4 — Feature Engineering & Preprocessing
 - [ ] 4.1 Parse `issue_d` → vintage

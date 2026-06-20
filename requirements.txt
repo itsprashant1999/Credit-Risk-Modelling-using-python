@@ -2,6 +2,9 @@
 pandas
 numpy
 
+# --- SQL engine (query data with SQL; builds data/credit.duckdb) ---
+duckdb
+
 # --- modeling ---
 scikit-learn
 xgboost
@@ -12,7 +15,9 @@ matplotlib
 seaborn
 
 # --- notebooks ---
-jupyter
+# NOTE: deliberately NOT installing the full `jupyter`/`jupyterlab` metapackage —
+# its widget extensions have very long filenames that break on Windows' 260-char
+# path limit. Cursor / VS Code only need `ipykernel` to run notebooks.
 ipykernel
 
 # --- serving (Phase 12) ---
