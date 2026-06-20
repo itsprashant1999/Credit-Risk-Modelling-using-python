@@ -1,0 +1,29 @@
+# data — never commit (large, licensed; download from Kaggle)
+data/
+
+# virtual environment
+.venv/
+venv/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# model artifacts
+models/*.pkl
+models/*.joblib
+models/*.json
+!models/.gitkeep
+
+# kaggle credentials — never commit
+kaggle.json
+
+# OS junk
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

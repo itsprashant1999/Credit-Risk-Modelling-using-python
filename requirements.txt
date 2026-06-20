@@ -1,0 +1,26 @@
+# --- core data stack ---
+pandas
+numpy
+
+# --- modeling ---
+scikit-learn
+xgboost
+shap
+
+# --- plotting ---
+matplotlib
+seaborn
+
+# --- notebooks ---
+jupyter
+ipykernel
+
+# --- serving (Phase 12) ---
+fastapi
+uvicorn
+pydantic
+joblib
+
+# Added when their phase arrives, to avoid blocking the install now:
+#   optbinning   -> Phase 6 (WoE / scorecard)
+#   kaggle       -> only if downloading data via CLI instead of the website
