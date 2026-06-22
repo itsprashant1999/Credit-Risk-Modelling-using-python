@@ -203,3 +203,91 @@ embedded.
 Data foundation **done and verified**: 2.26 M accepted / 27.6 M rejected, 98 leakage-safe
 features, 1.35 M-loan modeling cohort at 19.97% default — implemented in **pandas and SQL** with
 identical results. Next: out-of-time vintage split → scorecard baseline → monotonic XGBoost.
+
+---
+
+## Likely interview questions & answers
+
+**Q. Which columns did you exclude, and why?**
+53 of 151. The bulk are *post-origination* fields — payment/performance (`total_pymnt`,
+`recoveries`, `out_prncp`, `last_fico_*`), hardship, and settlement — which only exist *after* the
+loan is funded, so they encode the outcome. Plus identifiers/constants, and Lending Club's own
+pricing (`grade`, `int_rate`, `installment`). The test for each: *would this value exist the
+moment the application arrives?*
+
+**Q. Give a concrete leakage example.**
+`total_rec_prncp` (principal received) ≈ the loan amount for fully-paid loans and far less for
+charged-off ones — it's the outcome restated. Leave it in and you get ~0.99 AUC that collapses on
+real applicants, because you'd never have that value at decision time.
+
+**Q. Why exclude `grade`/`int_rate` if they're known at application?**
+They're not leakage — they're *Lending Club's own risk verdict*. Using them means re-predicting
+LC's model instead of finding risk in borrower fundamentals. Excluding them yields an independent
+model and lets LC's `grade` serve as a benchmark to beat.
+
+**Q. Why an out-of-time split instead of a random one?**
+Credit models are deployed *forward in time*. A random split leaks future vintages into training
+and inflates metrics. Training on older vintages and testing on newer ones (OOT) measures what
+actually matters: does the model hold up on loans it hasn't seen the era of?
+
+**Q. The resume says 2.2 M but you model on 1.35 M — explain.**
+2.26 M is the dataset; 1.35 M is the *resolved* cohort after dropping in-progress (`Current`,
+`Late`), off-policy, and junk rows. You can only label a loan good/bad once it's finished.
+
+**Q. Is the data imbalanced? How will you handle it?**
+19.97% default — mild. I'll use `scale_pos_weight` in XGBoost plus probability calibration, not
+SMOTE — synthetic oversampling distorts the very probabilities a PD model must get right.
+
+**Q. Reject inference on 27 M rows — what could you actually do?**
+The rejected file has only 9 columns, so inference is limited to the ~5 features shared with the
+accepted set (amount, DTI, employment length, a FICO-like risk score, geography). I treat it as a
+known-imperfect method and discuss selection bias openly rather than overselling it.
+
+**Q. How will you know the model is any good?**
+Gini/KS/Brier reported **in-time vs OOT** (and the gap stated plainly), calibration/reliability
+curves, and PSI to confirm the OOT population hasn't drifted beyond what the metrics assume.
+
+**Q. Why DuckDB / why a SQL track at all?**
+Real teams wrangle in SQL and model in Python. DuckDB runs standard SQL directly on the `.csv.gz`,
+is columnar/fast, and needs no server — so the data layer is reproducible in SQL and cross-checked
+against pandas.
+
+---
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| **PD** | Probability of Default — the model's output |
+| **Default / "bad"** | Here: `Charged Off` or `Default` status |
+| **WoE** | Weight of Evidence — log-odds transform of a binned feature (scorecard input) |
+| **IV** | Information Value — a WoE-based measure of a feature's predictive strength |
+| **Gini / AUC** | Rank-ordering power; Gini = 2·AUC − 1 |
+| **KS** | Kolmogorov–Smirnov — max separation between good/bad score distributions |
+| **Brier** | Mean squared error of predicted probabilities (lower = better calibrated) |
+| **Calibration** | Making predicted probabilities match observed frequencies |
+| **OOT / vintage** | Out-of-time; a vintage = loans grouped by issue period |
+| **PSI** | Population Stability Index — distribution shift (drift) measure |
+| **Reject inference** | Estimating performance for never-approved applicants (selection-bias fix) |
+| **Monotonic constraint** | Forcing the model's response to move one direction in a feature |
+| **Scorecard** | Points-based logistic model, the regulatory-standard baseline |
+| **`scale_pos_weight`** | XGBoost knob to up-weight the minority (default) class |
+| **Reason codes** | Per-applicant "why declined" explanations (adverse-action style) |
+
+---
+
+## Known limitations & what I'd do differently
+
+- **Reject inference is inherently weak here** — only ~5 features overlap the accepted set, so any
+  inferred labels are uncertain. It's a defensible *demonstration* of the technique, not a strong
+  correction; framed openly as such.
+- **Data vintage is 2007–2018** — this proves *methodology*, not current-market prediction. The
+  techniques transfer; the coefficients wouldn't.
+- **Excluding `grade`/`int_rate` is a deliberate stance** — some lenders keep them. I chose
+  independence + benchmarking; I'd revisit if the goal were pure predictive lift.
+- **No macroeconomic features** (unemployment, rate environment) — a production PD model would add
+  them; they materially affect default cycles.
+- **Geography underused** — `zip_code`/`addr_state` are kept but not enriched with external data.
+- **Single train/OOT split** — multiple rolling OOT windows would test temporal robustness harder.
+- **Free-text dropped** — `emp_title`/`desc` are excluded from the baseline; an NLP pass could
+  extract signal later.
